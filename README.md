@@ -1,4 +1,4 @@
-# arequest
+# arequest ![PyPI](https://img.shields.io/pypi/v/arequest) 
 _arequest is a simple async HTTP library, with more flexible._  
   
 ## Installation
