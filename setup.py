@@ -6,9 +6,9 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="arequest",
-    version="0.0.1",
+    version="0.0.2",
     author="p7e4",
-    author_email="p7e4@qq.com",
+    author_email="cDdlNEBxcS5jb20=",
     description="arequest is a simple async HTTP library, with more flexible.",
     long_description=description,
     long_description_content_type="text/markdown",
@@ -16,7 +16,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     license="Apache 2.0",
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
