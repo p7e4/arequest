@@ -18,6 +18,7 @@ async def main():
     print(r.url)
     print(r.encoding)
     print(r.text)
+    print(r.cookies)
     # print(r.content)
     # bytes response content
 
