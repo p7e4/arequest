@@ -10,7 +10,7 @@ import chardet
 from io import BytesIO
 
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 async def get(url, params=None, **kwargs):
 
@@ -137,11 +137,14 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
     r.url = url.geturl()
     r.status_code = int(status_code)
 
-    # if cookie := headers.get("Set-Cookie"):
-    #     pass
-
-    # else:
-    #     r.cookies = {}
+    r.cookies = {}
+    if cookie := headers.get("Set-Cookie"):
+        for i in cookie.split("; "):
+            v = i.strip().split("=")
+            if (n := len(v)) == 1:
+                r.cookies[v[0]] = "true"
+            elif n == 2:
+                r.cookies[v[0]] = v[1]
 
 
     if not content:
@@ -205,6 +208,7 @@ async def main():
     print(r.url)
     print(r.encoding)
     print(r.text)
+    print(r.cookies)
 
 if __name__ == '__main__':
     asyncio.run(main())
