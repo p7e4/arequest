@@ -209,6 +209,8 @@ async def main():
     print(r.encoding)
     print(r.text)
     print(r.cookies)
+    # print(r.content)
+    # bytes response content
 
 if __name__ == '__main__':
     asyncio.run(main())
