@@ -4,11 +4,13 @@ import setuptools
 with open("README.md", "r") as f:
     description = f.read()
 
+from arequest import __version__
+
 setuptools.setup(
     name="arequest",
-    version="0.0.2",
+    version=__version__,
     author="p7e4",
-    author_email="cDdlNEBxcS5jb20=",
+    author_email="p7e4@qq.com",
     description="arequest is a simple async HTTP library, with more flexible.",
     long_description=description,
     long_description_content_type="text/markdown",
