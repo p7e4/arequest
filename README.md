@@ -43,5 +43,7 @@ r = await arequest.post("https://httpbin.org/post", params=params, data=data,
   
   
   
+## Warnning
+**The arequest is still in the early development stage, please do not use it in the production environment.**
 
 
