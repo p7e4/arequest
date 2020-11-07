@@ -1,6 +1,9 @@
 # arequest ![PyPI](https://img.shields.io/pypi/v/arequest) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/arequest) [![Downloads](https://pepy.tech/badge/arequest)](https://pepy.tech/project/arequest)
 _arequest is a simple async HTTP library, with more flexible._  
   
+## Warnning
+**The arequest is still in the early development stage, please do not use for production.**
+
 ## Installation
 `pip3 install arequest`  
   
@@ -43,7 +46,6 @@ r = await arequest.post("https://httpbin.org/post", params=params, data=data,
   
   
   
-## Warnning
-**The arequest is still in the early development stage, please do not use it in the production environment.**
+
 
 
