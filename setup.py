@@ -11,7 +11,7 @@ setuptools.setup(
     version=__version__,
     author="p7e4",
     author_email="p7e4@qq.com",
-    description="arequest is a simple async HTTP library, with more flexible.",
+    description="A simple async HTTP library, with more flexible.",
     long_description=description,
     long_description_content_type="text/markdown",
     url="https://github.com/p7e4/arequest",
