@@ -3,13 +3,17 @@
 
 """
 
+import asyncio
+import arequest
+
 async def main():
-    r = await get("https://github.com")
+    r = await arequest.get("https://github.com")
     print(r.headers)
     print(r.status_code)
     print(r.url)
     print(r.encoding)
     print(r.text)
+    print(r.cookies)
     # print(r.content)
     # bytes response content
 
