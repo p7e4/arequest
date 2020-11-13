@@ -10,7 +10,7 @@ import chardet
 from io import BytesIO
 
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 async def get(url, params=None, **kwargs):
 
@@ -43,7 +43,7 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
                  allow_redirects=True, cookies=None):
 
     if method.lower() not in ("get", "post", "head", "raw"):
-        raise ValueError(f"Not supported method '{method}'")
+        raise ValueError(f"Unknown method '{method}'")
 
     url = urlsplit(url)
     method = method.upper()
@@ -93,7 +93,6 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
 
         _headers["Content-Length"] = len(data)
         _headers["Content-Type"] = "application/x-www-form-urlencoded"
-        # data += "\r\n"
 
 
     query = [f"{method} {url.path or '/'}{params or ''} HTTP/1.1"]
@@ -111,7 +110,7 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
         reader, writer = await asyncio.open_connection(
             url.hostname, url.port or 80)
     else:
-        raise ValueError("unknown scheme '{url.scheme}'")
+        raise ValueError("Unknown scheme '{url.scheme}'")
 
     writer.write(query.encode())
     if data: writer.write(data.encode())
@@ -183,7 +182,7 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
             content =  brotli.decompress(content)
 
         else:
-            raise TypeError(f"unsupport content-encoding '{t}'")
+            raise TypeError(f"Unknown Content-Encoding '{t}'")
 
 
     if headers.get("Content-Type") and headers.get("Content-Type").find("charset") != -1:
