@@ -1,16 +1,17 @@
 #!/usr/bin/python3
-# require python >= 3.8
-
 from urllib.parse import urlsplit, urlencode
 import asyncio
 import zlib
 import gzip
-import brotli
 import chardet
 from io import BytesIO
+from collections import OrderedDict
+import ssl
 
+__all__ = ["get", "post", "head","__version__"]
 
 __version__ = "0.0.3"
+
 
 async def get(url, params=None, **kwargs):
 
@@ -31,45 +32,62 @@ async def head(url, **kwargs):
 
 #     return await request("raw", url, raw=raw, **kwargs)
 
+
 class Response(object):
     def __init__(self):
-        self.__initialised = True
+        # self.__initialised = True
+        self.status_code = None
+        self.headers = None
+        self.content = None
+        self.url = None
+        self.encoding = None
+        self.cookies = None
 
     def __repr__(self):
         return f"<Response [{self.status_code}]>"
 
+    @property
+    def text(self):
+        return self.content.decode(self.encoding, "replace")
+
+
+def trim(string, key):
+    if string.startswith(key) and string.endswith(key):
+        n = len(key)
+        return string[n:-n]
+    else:
+        return string
+
 
 async def request(method, url, params=None, data=None, raw=None, headers=None,
-                 allow_redirects=True, cookies=None):
+                 timeout=30, cookies=None, verify=True, json=None, file=None):
 
     if method.lower() not in ("get", "post", "head", "raw"):
-        raise ValueError(f"Unknown method '{method}'")
+        raise ValueError(f"Unsupported method '{method}'")
 
     url = urlsplit(url)
     method = method.upper()
 
-    _headers = {
-        "Host": url.netloc,
-        "User-Agent": f"arequest/{__version__}",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept": "*/*",
-        "Cache-Control": "no-cache",
-        "Connection": "close",
-    }
+    _headers = OrderedDict()
+    _headers["Host"] = url.netloc
+    _headers["User-Agent"] = f"arequest/{__version__}"
+    _headers["Accept-Encoding"] = "gzip, deflate"
+    _headers["Accept"] = "*/*"
+    _headers["Connection"] = "close"
+
 
     if params:
         if isinstance(params, dict):
-            params = urlencode(params)
+            query = urlencode(params)
         else:
-            raise TypeError("params argument must be a dict.")
+            raise TypeError("params must be dict.")
 
         if url.query:
-            params = f"?{url.query}&{params}"
+            query = f"?{url.query}&{params}"
         else:
-            params = f"?{params}"
+            query = f"?{params}"
     else:
-        if url.query:
-            params = f"?{url.query}"
+        query = f"?{url.query}" if url.query else None
 
     if headers:
         if isinstance(headers, dict):
@@ -95,66 +113,73 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
         _headers["Content-Type"] = "application/x-www-form-urlencoded"
 
 
-    query = [f"{method} {url.path or '/'}{params or ''} HTTP/1.1"]
+    if json:
+        pass
+
+
+    if file:
+        pass
+
+
+
+    sendData = [f"{method} {url.path or '/'}{query or ''} HTTP/1.1"]
     for key, value in _headers.items():
-        query.append(f"{key.title()}: {value}")
+        sendData.append(f"{key.title()}: {value}")
 
-    query.append("\r\n")
-    query = "\r\n".join(query)
+    sendData.append("\r\n")
+    if data: sendData.append(data)
+
+    sendData = "\r\n".join(sendData)
 
 
+    # send request
     if url.scheme == "https":
+        if not verify:
+            timeout = None
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         reader, writer = await asyncio.open_connection(
-            url.hostname, url.port or 443, ssl=True)
+            url.hostname, url.port or 443, ssl=verify or context, ssl_handshake_timeout=timeout)
     elif url.scheme == "http":
         reader, writer = await asyncio.open_connection(
             url.hostname, url.port or 80)
     else:
-        raise ValueError("Unknown scheme '{url.scheme}'")
+        raise ValueError("Unsupported scheme '{url.scheme}'")
 
-    writer.write(query.encode())
-    if data: writer.write(data.encode())
-
-    _a = await reader.readline()
-    status_code = _a.decode().split()[1]
-
-    headers = []
-    while line := await reader.readline():
-        line = line.decode().rstrip()
-        if line:
-            headers.append(line.split(": ", 1))
-        else:
-            headers = dict(headers)
-            content = await reader.read()
-            writer.close()
-            break
+    writer.write(sendData.encode())
 
 
     # response parse
     r = Response()
-    r.headers = headers
+    headline = await reader.readline()
+    if not headline:
+        raise ValueError(f"no response from '{url.netloc}'")
+
+    r.status_code = int(headline.decode().split()[1])
     r.url = url.geturl()
-    r.status_code = int(status_code)
 
+    r.headers = {}
     r.cookies = {}
-    if cookie := headers.get("Set-Cookie"):
-        for i in cookie.split("; "):
-            v = i.strip().split("=")
-            if (n := len(v)) == 1:
-                r.cookies[v[0]] = "true"
-            elif n == 2:
-                r.cookies[v[0]] = v[1]
-
+    while line := await reader.readline():
+        line = line.decode().rstrip()
+        if line:
+            k, v = line.split(": ", 1)
+            if k == "Set-Cookie":
+                c = v.split(";", 1)[0].strip().split("=")
+                if len(c) == 2:
+                    r.cookies[c[0]] = trim(c[1], "\"")
+            else:
+                r.headers[k] = v
+        else:
+            content = await reader.read()
+            writer.close()
+            break
 
     if not content:
-        r.content = ""
-        r.text = ""
         return r
-
 
     reader = BytesIO(content)
 
-    if headers.get("Transfer-Encoding") == "chunked":
+    if r.headers.get("Transfer-Encoding") == "chunked":
         content = []
 
         while line := reader.readline():
@@ -168,40 +193,30 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
 
         content = b"".join(content)
 
-    elif (n := headers.get("Content-Length")):
+    elif (n := r.headers.get("Content-Length")):
         content = reader.read(int(n))
 
-    if (t := headers.get("Content-Encoding")):
+    if (t := r.headers.get("Content-Encoding")):
         if t == "gzip":
             content = gzip.decompress(content)
 
         elif t == "deflate":
             content = zlib.decompress(content)
 
-        elif t == "bz":
-            content =  brotli.decompress(content)
-
         else:
-            raise TypeError(f"Unknown Content-Encoding '{t}'")
+            raise TypeError(f"Unsupported Content-Encoding '{t}'")
 
-
-    if headers.get("Content-Type") and headers.get("Content-Type").find("charset") != -1:
-        charset = headers["Content-Type"].split("charset=")[1]
-
+    if r.headers.get("Content-Type") and r.headers["Content-Type"].find("charset") != -1:
+        r.encoding = r.headers["Content-Type"].split("charset=")[1]
     else:
-        # charset = "utf-8"
-        charset = chardet.detect(content)["encoding"]
-
-    r.encoding = charset
-    r.text = content.decode(charset, "replace")
+        r.encoding = chardet.detect(content)["encoding"]
 
     r.content = content
     return r
 
 
-    
 async def main():
-    r = await get("https://github.com/")
+    r = await get("http://httpbin.org/get")
     print(r.headers)
     print(r.status_code)
     print(r.url)
@@ -209,7 +224,7 @@ async def main():
     print(r.text)
     print(r.cookies)
     # print(r.content)
-    # bytes response content
+
 
 if __name__ == '__main__':
     asyncio.run(main())
