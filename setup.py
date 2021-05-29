@@ -4,7 +4,7 @@ import setuptools
 with open("README.md") as f:
     description = f.read()
 
-from .arequest import __version__
+from arequest import __version__
 
 setuptools.setup(
     name="arequest",
