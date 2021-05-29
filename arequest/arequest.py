@@ -11,7 +11,7 @@ import json
 
 __all__ = ["get", "post", "head", "raw", "__version__"]
 
-__version__ = "v0.0.3"
+__version__ = "v0.0.4"
 
 
 async def get(url, params=None, **kwargs):
@@ -34,7 +34,6 @@ async def raw(url, raw, **kwargs):
 
 class Response(object):
     def __init__(self):
-        # self.__initialised = True
         self.status_code = None
         self.headers = None
         self.content = None
@@ -127,7 +126,6 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
     sendData = [f"{method} {url.path or '/'}{query or ''} HTTP/1.1"]
     for key, value in _headers.items():
         sendData.append(f"{key.title()}: {value}")
-
     
     if data: sendData.append("\r\n" + data)
     sendData.append("\r\n")

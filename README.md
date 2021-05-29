@@ -1,4 +1,4 @@
-# arequest ![PyPI](https://img.shields.io/pypi/v/arequest) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/arequest) [![Downloads](https://pepy.tech/badge/arequest)](https://pepy.tech/project/arequest) ![PyPI - License](https://img.shields.io/pypi/l/arequest)
+# arequest ![PyPI](https://img.shields.io/pypi/v/arequest) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/arequest) ![Downloads](https://pepy.tech/badge/arequest) ![PyPI - License](https://img.shields.io/pypi/l/arequest)
 
 _arequest is an async HTTP library, with more flexible._  
 
@@ -10,7 +10,7 @@ _arequest is an async HTTP library, with more flexible._
 
 ## Installation
 
-`pip install arequest`  
+`pip install -U arequest`  
   
 *note: python3.8 or higher required.*  
 
