@@ -7,30 +7,29 @@ import chardet
 from io import BytesIO
 from collections import OrderedDict
 import ssl
+import json
 
-__all__ = ["get", "post", "head","__version__"]
+__all__ = ["get", "post", "head", "raw", "__version__"]
 
-__version__ = "0.0.3"
+__version__ = "v0.0.3"
 
 
 async def get(url, params=None, **kwargs):
 
     return await request("get", url, params=params, **kwargs)
 
-async def post(url, data=None, **kwargs):
+async def post(url, data=None, json=None, **kwargs):
 
-    return await request("post", url, data=data, **kwargs)
+    return await request("post", url, data=data, rjson=json, **kwargs)
 
 async def head(url, **kwargs):
 
     return await request("head", url, **kwargs)
 
-# async def raw(url, raw, **kwargs):
-
-#     if (t := type(raw)) != str:
-#         raise TypeError("raw argument must be a str, {t} given.")
-
-#     return await request("raw", url, raw=raw, **kwargs)
+async def raw(url, raw, **kwargs):
+    if (t := type(raw)) != str:
+        raise TypeError("raw argument must be a str, {t} given.")
+    return await request("raw", url, raw=raw, **kwargs)
 
 
 class Response(object):
@@ -50,6 +49,9 @@ class Response(object):
     def text(self):
         return self.content.decode(self.encoding, "replace")
 
+    def json(self):
+        return json.loads(self.text)
+
 
 def trim(string, key):
     if string.startswith(key) and string.endswith(key):
@@ -60,7 +62,7 @@ def trim(string, key):
 
 
 async def request(method, url, params=None, data=None, raw=None, headers=None,
-                 timeout=30, cookies=None, verify=True, json=None, file=None):
+                 timeout=30, cookies=None, verify=True, rjson=None, file=None):
 
     if method.lower() not in ("get", "post", "head", "raw"):
         raise ValueError(f"Unsupported method '{method}'")
@@ -103,7 +105,12 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
 
         _headers["Cookie"] = cookies
 
-    if data:
+    if rjson:
+        data = json.dumps(rjson, default=str)
+        _headers["Content-Length"] = len(data)
+        _headers["Content-Type"] = "application/json"
+
+    elif data:
         if isinstance(data, dict):
             data = urlencode(data)
         elif not isinstance(data, str):
@@ -112,12 +119,7 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
         _headers["Content-Length"] = len(data)
         _headers["Content-Type"] = "application/x-www-form-urlencoded"
 
-
-    if json:
-        pass
-
-
-    if file:
+    elif file:
         pass
 
 
@@ -126,11 +128,11 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
     for key, value in _headers.items():
         sendData.append(f"{key.title()}: {value}")
 
+    
+    if data: sendData.append("\r\n" + data)
     sendData.append("\r\n")
-    if data: sendData.append(data)
 
     sendData = "\r\n".join(sendData)
-
 
     # send request
     if url.scheme == "https":
@@ -223,6 +225,7 @@ async def main():
     print(r.encoding)
     print(r.text)
     print(r.cookies)
+    print(r.json())
     # print(r.content)
 
 
