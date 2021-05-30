@@ -43,12 +43,12 @@ async def patch(url, **kwargs):
     return await request("patch", url, **kwargs)
 
 
-async def raw(url, raw):
+async def raw(url, raw, **kwargs):
 
     if (t := type(raw)) != str:
         raise TypeError("raw argument must be type str, {t} given.")
 
-    return await request("raw", url, raw=raw)
+    return await request("raw", url, raw=raw, **kwargs)
 
 
 class Response(object):
@@ -81,7 +81,7 @@ def trim(string, key):
 
 
 async def request(method, url, params=None, data=None, raw=None, headers=None,
-                 sslTimeout=20, cookies=None, verify=False, json=None, file=None):
+                 sslTimeout=20, cookies=None, verify=True, json=None, file=None):
 
     if method.lower() not in ("get", "post", "head", "put", "delete", "options", "patch", "raw"):
         raise ValueError(f"Unsupported method '{method}'")

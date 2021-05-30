@@ -25,6 +25,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
+        "Natural Language :: English",
     ],
     python_requires='>=3.8',
     install_requires=[

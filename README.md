@@ -50,7 +50,7 @@ data = {"key": "value"}
 await arequest.post("https://httpbin.org/post", data=data)
 ```
 
-or json:
+- POST JSON
 
 ``` python
 data = {"key": "value"}
@@ -59,6 +59,7 @@ await arequest.post("https://httpbin.org/post", json=data)
 
 
 ## HTTP Methods
+
 ``` python
 await arequest.get("https://httpbin.org/get")
 await arequest.post("https://httpbin.org/post", data={"data": "test"})
@@ -67,6 +68,29 @@ await arequest.delete("https://httpbin.org/delete")
 await arequest.patch("https://httpbin.org/patch")
 await arequest.options("https://httpbin.org/anything")
 ```
+
+## Custom Headers
+
+``` python
+headers = {
+    "user-agent": "test"
+}
+await arequest.get("https://httpbin.org/get", headers=headers)
+```
+
+> *`headers` could override any original request header, including Host*
+
+
+## Cookies
+
+``` python
+cookies = {
+    "test": "test"
+}
+await arequest.get("https://httpbin.org/cookies", cookies=cookies)
+```
+
+
 
 
 
