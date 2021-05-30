@@ -2,7 +2,7 @@
 
 _arequest is an async HTTP library, with more flexible._  
 
-  
+
 ## Warnning
 
 **The arequest is experimental for now, please do not use for production environment.**
@@ -12,10 +12,10 @@ _arequest is an async HTTP library, with more flexible._
 
 `pip install -U arequest`  
   
-*note: python3.8 or higher required.*  
+> *python3.8 or higher required.*  
 
 
-## Hello, world
+## Quickstart
 
 ``` python
 import asyncio
@@ -35,14 +35,39 @@ async def main():
 asyncio.run(main())
 ```
 
+
+## Passing URL parameters
+
+``` python
+await arequest.get("https://httpbin.org/get", params={"test": "123"})
+```
+
+
 ## POST
 
 ``` python
 data = {"key": "value"}
-
-r = await arequest.post("https://httpbin.org/post", data=data)
-
+await arequest.post("https://httpbin.org/post", data=data)
 ```
+
+or json:
+
+``` python
+data = {"key": "value"}
+await arequest.post("https://httpbin.org/post", json=data)
+```
+
+
+## HTTP Methods
+``` python
+await arequest.get("https://httpbin.org/get")
+await arequest.post("https://httpbin.org/post", data={"data": "test"})
+await arequest.put("https://httpbin.org/put")
+await arequest.delete("https://httpbin.org/delete")
+await arequest.patch("https://httpbin.org/patch")
+await arequest.options("https://httpbin.org/anything")
+```
+
 
 
 

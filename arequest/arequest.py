@@ -7,9 +7,9 @@ import chardet
 from io import BytesIO
 from collections import OrderedDict
 import ssl
-import json
+import json as sjson
 
-__all__ = ["get", "post", "head", "raw", "__version__"]
+__all__ = ["get", "post", "head", "put", "delete", "options", "patch", "raw", "__version__"]
 
 __version__ = "v0.0.4"
 
@@ -18,18 +18,37 @@ async def get(url, params=None, **kwargs):
 
     return await request("get", url, params=params, **kwargs)
 
-async def post(url, data=None, json=None, **kwargs):
+async def post(url, data=None, **kwargs):
 
-    return await request("post", url, data=data, rjson=json, **kwargs)
+    return await request("post", url, data=data, **kwargs)
 
 async def head(url, **kwargs):
 
     return await request("head", url, **kwargs)
 
-async def raw(url, raw, **kwargs):
+async def put(url, **kwargs):
+
+    return await request("put", url, **kwargs)
+
+async def delete(url, **kwargs):
+
+    return await request("delete", url, **kwargs)
+
+async def options(url, **kwargs):
+
+    return await request("options", url, **kwargs)
+
+async def patch(url, **kwargs):
+
+    return await request("patch", url, **kwargs)
+
+
+async def raw(url, raw):
+
     if (t := type(raw)) != str:
-        raise TypeError("raw argument must be a str, {t} given.")
-    return await request("raw", url, raw=raw, **kwargs)
+        raise TypeError("raw argument must be type str, {t} given.")
+
+    return await request("raw", url, raw=raw)
 
 
 class Response(object):
@@ -46,10 +65,11 @@ class Response(object):
 
     @property
     def text(self):
-        return self.content.decode(self.encoding, "replace")
+        return self.content.decode(self.encoding, "replace") if self.content else ""
 
     def json(self):
-        return json.loads(self.text)
+        if n:=self.text:
+            return sjson.loads(n)
 
 
 def trim(string, key):
@@ -61,9 +81,9 @@ def trim(string, key):
 
 
 async def request(method, url, params=None, data=None, raw=None, headers=None,
-                 timeout=30, cookies=None, verify=True, rjson=None, file=None):
+                 sslTimeout=20, cookies=None, verify=False, json=None, file=None):
 
-    if method.lower() not in ("get", "post", "head", "raw"):
+    if method.lower() not in ("get", "post", "head", "put", "delete", "options", "patch", "raw"):
         raise ValueError(f"Unsupported method '{method}'")
 
     url = urlsplit(url)
@@ -104,8 +124,8 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
 
         _headers["Cookie"] = cookies
 
-    if rjson:
-        data = json.dumps(rjson, default=str)
+    if json:
+        data = sjson.dumps(json, default=str)
         _headers["Content-Length"] = len(data)
         _headers["Content-Type"] = "application/json"
 
@@ -122,7 +142,6 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
         pass
 
 
-
     sendData = [f"{method} {url.path or '/'}{query or ''} HTTP/1.1"]
     for key, value in _headers.items():
         sendData.append(f"{key.title()}: {value}")
@@ -135,10 +154,10 @@ async def request(method, url, params=None, data=None, raw=None, headers=None,
     # send request
     if url.scheme == "https":
         if not verify:
-            timeout = None
+            sslTimeout = None
             context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         reader, writer = await asyncio.open_connection(
-            url.hostname, url.port or 443, ssl=verify or context, ssl_handshake_timeout=timeout)
+            url.hostname, url.port or 443, ssl=verify or context, ssl_handshake_timeout=sslTimeout)
     elif url.scheme == "http":
         reader, writer = await asyncio.open_connection(
             url.hostname, url.port or 80)
