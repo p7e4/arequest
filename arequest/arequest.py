@@ -11,7 +11,7 @@ import json as sjson
 
 __all__ = ["get", "post", "head", "put", "delete", "options", "patch", "raw", "__version__"]
 
-__version__ = "v0.0.4"
+__version__ = "v0.0.5"
 
 
 async def get(url, params=None, **kwargs):

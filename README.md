@@ -78,7 +78,7 @@ headers = {
 await arequest.get("https://httpbin.org/get", headers=headers)
 ```
 
-> *`headers` could override any original request header, including Host*
+> *`headers` could override any original request header, including `Host`*
 
 
 ## Cookies
@@ -90,6 +90,12 @@ cookies = {
 await arequest.get("https://httpbin.org/cookies", cookies=cookies)
 ```
 
+
+## Unverified SSL Cert
+
+``` python
+await arequest.get("https://httpbin.org/get", verify=False)
+```
 
 
 
